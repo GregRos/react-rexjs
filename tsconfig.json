@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+	"module": "commonjs",
+	"target": "es5",
+	"charset": "utf8",
+	"experimentalDecorators": true
+  },
+  "exclude": [
+	"typings/globals",
+	"typings/modules",
+	"node_modules"
+  ]
+}
