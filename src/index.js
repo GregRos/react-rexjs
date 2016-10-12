@@ -7,4 +7,4 @@ function __export(m) {
  */
 __export(require('./lib/ts-component'));
 __export(require('./lib/lifecycle-decorators'));
-__export(require('./lib/invoker'));
+__export(require('./lib/invoker/invoker'));

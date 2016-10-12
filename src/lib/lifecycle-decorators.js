@@ -1,11 +1,7 @@
 "use strict";
 var invoker_1 = require('./invoker');
-/**
- * Contains
- */
-var Lifecycle;
-(function (Lifecycle) {
-    var pushInvocationList = invoker_1.Invoker.pushInvocationList;
+var Life;
+(function (Life) {
     /**
      @example
      function componentWillReceiveProps(nextProps : Props) : void
@@ -14,13 +10,7 @@ var Lifecycle;
 
      Use this as an opportunity to react to a prop transition before render() is called by updating the state using this.setState(). The old props can be accessed via this.props. Calling this.setState() within this function will not trigger an additional render.
      */
-    function willReceiveProps(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentWillReceiveProps', target['property']);
-        };
-    }
-    Lifecycle.willReceiveProps = willReceiveProps;
+    Life.willReceiveProps = invoker_1.invokedBy('componentWillReceiveProps', 1);
     /**
      @example
      function componentDidMount() : void
@@ -29,26 +19,14 @@ var Lifecycle;
       
      If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval, or send AJAX requests, perform those operations in this method.
      */
-    function didMount(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentDidMount', target[property]);
-        };
-    }
-    Lifecycle.didMount = didMount;
+    Life.didMount = invoker_1.invokedBy('componentDidMount', 0);
     /**
      @example
      function componentWillMount() : void
 
      @description Invoked once, both on the client and server, immediately before the initial rendering occurs. If you call setState within this method, render() will see the updated state and will be executed only once despite the state change.
      */
-    function willMount(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentWillMount', target[property]);
-        };
-    }
-    Lifecycle.willMount = willMount;
+    Life.willMount = invoker_1.invokedBy('componentWillMount', 0);
     /**
      @example
      function shouldComponentUpdate(nextProps : Props, nextState : State) : boolean
@@ -62,13 +40,7 @@ var Lifecycle;
       
      If performance is a bottleneck, especially with dozens or hundreds of components, use shouldComponentUpdate to speed up your app.
      */
-    function shouldUpdate(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'shouldComponentUpdate', target[property]);
-        };
-    }
-    Lifecycle.shouldUpdate = shouldUpdate;
+    Life.shouldUpdate = invoker_1.invokedBy('componentShouldUpdate', 2);
     /**
      @example
      function componentWillUpdate(nextProps : Props, nextState : State) : void
@@ -79,13 +51,7 @@ var Lifecycle;
       
      You cannot use this.setState() in this method. If you need to update state in response to a prop change, use componentWillReceiveProps instead.
      */
-    function willUpdate(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentWillUpdate', target[property]);
-        };
-    }
-    Lifecycle.willUpdate = willUpdate;
+    Life.willUpdate = invoker_1.invokedBy('componentWillUpdate', 2);
     /**
      @example
      function componentDidUpdate(prevProps : Props, prevState : State) : void
@@ -94,13 +60,7 @@ var Lifecycle;
       
      Use this as an opportunity to operate on the DOM when the component has been updated.
      */
-    function didUpdate(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentDidUpdate', target[property]);
-        };
-    }
-    Lifecycle.didUpdate = didUpdate;
+    Life.didUpdate = invoker_1.invokedBy('componentDidUpdate', 2);
     /**
      @example
      function componentWillUnmount () : void
@@ -109,11 +69,5 @@ var Lifecycle;
       
      Perform any necessary cleanup in this method, such as invalidating timers or cleaning up any DOM elements that were created in componentDidMount.
      */
-    function willUnmount(override) {
-        if (override === void 0) { override = false; }
-        return function (target, property) {
-            pushInvocationList(target, 'componentWillUnmount', target[property]);
-        };
-    }
-    Lifecycle.willUnmount = willUnmount;
-})(Lifecycle = exports.Lifecycle || (exports.Lifecycle = {}));
+    Life.willUnmount = invoker_1.invokedBy('componentWillUnmount', 0);
+})(Life = exports.Life || (exports.Life = {}));

@@ -1,9 +1,7 @@
 /**
  * Created by Greg on 25/09/2016.
  */
-var gulp = require('gulp'),
-	argv = require('yargs').argv, // for args parsing
-	spawn = require('child_process').spawn;
+var gulp = require('gulp');
 var ts = require('gulp-typescript');
 var merge = require('merge2');
 var tsFiles = ['typings/*.*', 'src/**/*.tsx', 'src/**/*.ts', '!typings/*/*.*'];
@@ -25,19 +23,4 @@ gulp.task('compile-ts', () => {
 
 gulp.task('watch', ['compile-ts'], () => {
 	gulp.watch(tsFiles.concat(watchToo), ['compile-ts'])
-});
-
-gulp.task('auto-reload', function() {
-	var p;
-
-	gulp.watch('gulpfile.js', spawnChildren);
-	spawnChildren();
-
-	function spawnChildren(e) {
-		// kill previous spawned process
-		if(p) { p.kill(); }
-
-		// `spawn` a child `gulp` process linked to the parent `stdio`
-		p = spawn('gulp', [argv.task], {stdio: 'inherit'});
-	}
 });

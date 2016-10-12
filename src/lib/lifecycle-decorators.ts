@@ -2,12 +2,9 @@
  * Created by Greg on 25/09/2016.
  */
 import _ = require('lodash');
-import {Invoker}  from './invoker';
-/**
- * Contains
- */
-export module Lifecycle {
-	var pushInvocationList = Invoker.pushInvocationList;
+import {invokedBy} from './invoker';
+
+export module Life {
 	/**
 	 @example
 	 function componentWillReceiveProps(nextProps : Props) : void
@@ -16,11 +13,7 @@ export module Lifecycle {
 
 	 Use this as an opportunity to react to a prop transition before render() is called by updating the state using this.setState(). The old props can be accessed via this.props. Calling this.setState() within this function will not trigger an additional render.
 	 */
-	export function willReceiveProps(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentWillReceiveProps', target['property']);
-		};
-	}
+	export const willReceiveProps = invokedBy('componentWillReceiveProps', 1);
 
 	/**
 	 @example
@@ -30,11 +23,7 @@ export module Lifecycle {
 	  
 	 If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval, or send AJAX requests, perform those operations in this method.
 	 */
-	export function didMount(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentDidMount', target[property]);
-		};
-	}
+	export const didMount = invokedBy('componentDidMount', 0);
 
 	/**
 	 @example
@@ -42,11 +31,8 @@ export module Lifecycle {
 
 	 @description Invoked once, both on the client and server, immediately before the initial rendering occurs. If you call setState within this method, render() will see the updated state and will be executed only once despite the state change.
 	 */
-	export function willMount(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentWillMount', target[property]);
-		};
-	}
+	export const willMount = invokedBy('componentWillMount', 0);
+
 	/**
 	 @example
 	 function shouldComponentUpdate(nextProps : Props, nextState : State) : boolean
@@ -60,11 +46,8 @@ export module Lifecycle {
 	  
 	 If performance is a bottleneck, especially with dozens or hundreds of components, use shouldComponentUpdate to speed up your app.
 	 */
-	export function shouldUpdate(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'shouldComponentUpdate', target[property]);
-		};
-	}
+	export const shouldUpdate = invokedBy('componentShouldUpdate', 2);
+
 	/**
 	 @example
 	 function componentWillUpdate(nextProps : Props, nextState : State) : void
@@ -75,11 +58,8 @@ export module Lifecycle {
 	  
 	 You cannot use this.setState() in this method. If you need to update state in response to a prop change, use componentWillReceiveProps instead.
 	 */
-	export function willUpdate(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentWillUpdate', target[property]);
-		};
-	}
+	export const willUpdate = invokedBy('componentWillUpdate', 2);
+
 	/**
 	 @example
 	 function componentDidUpdate(prevProps : Props, prevState : State) : void
@@ -88,11 +68,7 @@ export module Lifecycle {
 	  
 	 Use this as an opportunity to operate on the DOM when the component has been updated.
 	 */
-	export function didUpdate(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentDidUpdate', target[property]);
-		};
-	}
+	export const didUpdate = invokedBy('componentDidUpdate', 2);
 	/**
 	 @example
 	 function componentWillUnmount () : void
@@ -101,9 +77,5 @@ export module Lifecycle {
 	  
 	 Perform any necessary cleanup in this method, such as invalidating timers or cleaning up any DOM elements that were created in componentDidMount.
 	 */
-	export function willUnmount(override = false) {
-		return function (target : any, property : string) : void {
-			pushInvocationList(target, 'componentWillUnmount', target[property]);
-		};
-	}
+	export const willUnmount = invokedBy('componentWillUnmount', 0);
 }

@@ -9,6 +9,9 @@
     "es6-shim": "registry:dt/es6-shim#0.31.2+20160602141504"
   },
   "globalDevDependencies": {
-    "jest": "registry:dt/jest#15.1.1+20160919141445"
+    "jest": "registry:dt/jest#15.1.1+20160919141445",
+    "react": "registry:dt/react#0.14.0+20160927082313",
+    "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
+    "systemjs": "registry:dt/systemjs#0.19.29+20160702105636"
   }
 }

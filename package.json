@@ -1,5 +1,5 @@
 {
-  "name": "react-ts2",
+  "name": "react-ts",
   "version": "0.1.0",
   "description": "A package containing helper methods and classes for working with React in TypeScript.",
   "main": "lib/index.js",
@@ -16,19 +16,20 @@
   "license": "MIT",
   "dependencies": {
     "core-js": "^2.4.1",
-    "es6-shim": "^0.35.1",
     "immutable": "^3.8.1",
     "immutable-js": "^0.3.1-6",
     "lodash": "^4.16.2",
-    "react": "^15.3.2"
+    "react": "^15.3.2",
+    "rexjs": "^0.2.1"
   },
   "devDependencies": {
+    "css-loader": "^0.25.0",
     "gulp": "^3.9.1",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-typescript": "^3.0.1",
     "jest": "^15.1.1",
     "merge2": "^1.0.2",
-    "typescript": "^2.0.3",
-    "yargs": "^5.0.0"
+    "style-loader": "^0.13.1",
+    "typescript": "^2.0.3"
   }
 }

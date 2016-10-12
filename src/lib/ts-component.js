@@ -6,10 +6,19 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var React = require('react');
 var _ = require('lodash');
+var helpers_1 = require("./helpers");
+var rexjs_1 = require('rexjs');
+var componentSymbols = new helpers_1.SymbolFactory("react-ts2.ts-component");
+var contextSymbol = componentSymbols.symbolFor("context");
 var TsComponent = (function (_super) {
     __extends(TsComponent, _super);
     function TsComponent() {
+        var _this = this;
         _super.apply(this, arguments);
+        //automatically allow context passing. To meaningfully use context,
+        //you still have to declare a context member with a type.
+        this.contextTypes = {};
+        this.state_ = rexjs_1.Rexes.computed_(function () { return _this.state; }, function (input) { return _this.setState(function (p) { return input; }); });
     }
     TsComponent.prototype.copyState = function () {
         return _.cloneDeep(this.state);
@@ -25,3 +34,11 @@ var TsComponent = (function (_super) {
     return TsComponent;
 }(React.Component));
 exports.TsComponent = TsComponent;
+var Test = (function (_super) {
+    __extends(Test, _super);
+    function Test() {
+        _super.apply(this, arguments);
+    }
+    return Test;
+}(TsComponent));
+var ctor = TsComponent;
