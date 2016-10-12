@@ -1,7 +1,4 @@
-/**
- * Contains
- */
-export declare module Lifecycle {
+export declare module Life {
     /**
      @example
      function componentWillReceiveProps(nextProps : Props) : void
@@ -10,7 +7,7 @@ export declare module Lifecycle {
 
      Use this as an opportunity to react to a prop transition before render() is called by updating the state using this.setState(). The old props can be accessed via this.props. Calling this.setState() within this function will not trigger an additional render.
      */
-    function willReceiveProps(override?: boolean): (target: any, property: string) => void;
+    const willReceiveProps: (target: any, property: string) => void;
     /**
      @example
      function componentDidMount() : void
@@ -19,14 +16,14 @@ export declare module Lifecycle {
       
      If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval, or send AJAX requests, perform those operations in this method.
      */
-    function didMount(override?: boolean): (target: any, property: string) => void;
+    const didMount: (target: any, property: string) => void;
     /**
      @example
      function componentWillMount() : void
 
      @description Invoked once, both on the client and server, immediately before the initial rendering occurs. If you call setState within this method, render() will see the updated state and will be executed only once despite the state change.
      */
-    function willMount(override?: boolean): (target: any, property: string) => void;
+    const willMount: (target: any, property: string) => void;
     /**
      @example
      function shouldComponentUpdate(nextProps : Props, nextState : State) : boolean
@@ -40,7 +37,7 @@ export declare module Lifecycle {
       
      If performance is a bottleneck, especially with dozens or hundreds of components, use shouldComponentUpdate to speed up your app.
      */
-    function shouldUpdate(override?: boolean): (target: any, property: string) => void;
+    const shouldUpdate: (target: any, property: string) => void;
     /**
      @example
      function componentWillUpdate(nextProps : Props, nextState : State) : void
@@ -51,7 +48,7 @@ export declare module Lifecycle {
       
      You cannot use this.setState() in this method. If you need to update state in response to a prop change, use componentWillReceiveProps instead.
      */
-    function willUpdate(override?: boolean): (target: any, property: string) => void;
+    const willUpdate: (target: any, property: string) => void;
     /**
      @example
      function componentDidUpdate(prevProps : Props, prevState : State) : void
@@ -60,7 +57,7 @@ export declare module Lifecycle {
       
      Use this as an opportunity to operate on the DOM when the component has been updated.
      */
-    function didUpdate(override?: boolean): (target: any, property: string) => void;
+    const didUpdate: (target: any, property: string) => void;
     /**
      @example
      function componentWillUnmount () : void
@@ -69,5 +66,5 @@ export declare module Lifecycle {
       
      Perform any necessary cleanup in this method, such as invalidating timers or cleaning up any DOM elements that were created in componentDidMount.
      */
-    function willUnmount(override?: boolean): (target: any, property: string) => void;
+    const willUnmount: (target: any, property: string) => void;
 }
