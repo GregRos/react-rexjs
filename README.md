@@ -5,7 +5,7 @@
 The library provides a `TsComponent` class which inherits from `React.Component` and adds a few handy features
 
 ### `withState`
-This is a method that accepts a `mutator : (TState => void)`. It behaves similarly to `setState(TState => TState)`, except that instead of accepting a reducer, it accepts a mutator that modifies the existing state. In fact, in order to maintain immutability, the state is first deep-copied, then mutated, and finally updated using `setState`.
+This is a method that accepts a `mutator : (TState => void)`. It behaves similarly to `setState(TState => TState)`, except that instead of accepting a reducer, it accepts a mutator that modifies the existing state. In fact, in order to maintain immutability, the state is first deep-copied, then mutated.
 
 This is very convenient behavior because the default type definition for `setState` is awkward to use. 
 
