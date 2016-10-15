@@ -9,23 +9,6 @@ This is a method that accepts a `mutator : (TState => void)`. It behaves similar
 
 This is very convenient behavior because the default type definition for `setState` is awkward to use. 
 
-### Dummy `contextTypes` definition
-Besides props and state, React components can also receive a third kind of data called *context*. This data is implicitly propagated down the view tree, without being specified explicitly in props.
-
-In React, a component has to define a `contextTypes` member in order to receive context data from a parent. In TypeScript, this is superfluous as it is best practice to statically specify the type of the context anyway (it defaults to `{}`, which is unusable without a cast).
-
-Thus, in order to access context in a `TsComponent`, you should write the following code:
-
-	class MyComponent extends TsComponent<{}, {}> {
-		context : MyContextType;
-	}
-
-And then access the context using `this.context`.
-
-Although some advocate against using context, in my opinion it can be an excellent device for eliminating necessary global variables and explicit references to modules and classes, which lets you reduce coupling.
-
-In the future I might figure out a better way to enforce type restrictions involving context.
-
 ## Handy type definitions
 `react-ts` provides a few handy type definitions for commonly used types:
 
