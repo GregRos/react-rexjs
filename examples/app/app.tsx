@@ -1,39 +1,48 @@
 import React = require('react');
-import {TsComponent} from "../../src/lib/ts-component";
-import {RexScalar, Rexes} from "../jspm_packages/npm/rexjs@0.2.1/dist/index";
-
-require('../jspm_packages/github/twbs/bootstrap@3.3.7/css/bootstrap.css!css')
-require('../jspm_packages/github/twbs/bootstrap@3.3.7/css/bootstrap-theme.css!css')
+import {TsComponent} from "../../src";
+import {RexScalar, Rexes} from "rexjs";
 interface User {
 	firstName : string;
 	lastName : string;
 	email : string;
 }
-
+require('../../node_modules/bootstrap/dist/css/bootstrap.css');
+require('../../node_modules/bootstrap/dist/css/bootstrap-theme.css');
 interface UserEditProps {
 	user : RexScalar<User>;
 }
 
-class UserEdit extends TsComponent<UserEditProps, {}> {
-	context : {test : string};
-	render() {
-		let test = this.context.test;
-		let {user} = this.props;
-		let userValue = user.value;
+interface InputThingProps {
+	text : RexScalar<string>;
+}
 
+class InputThing extends TsComponent<InputThingProps, {}> {
+	render() {
+		let {text} = this.props;
+		return <input
+			type="text"
+			className="form-control"
+			value={text.value}
+			onChange={e => text.value = e.target['value']}/>;
+	}
+}
+
+class UserEdit extends TsComponent<UserEditProps, {}> {
+	render() {
+		let user = this.props.user;
+		let userValue = user.value;
 		return <div className="fdf">
-			Test: {test}
 			<div className="form-group">
 				<label>First Name</label>
-				<input type="text" className="form-control" value={userValue.firstName} onChange={e => user.mutate(u => u.firstName = e.target['value'])}/>
+				<InputThing text={user.member_(x => x.firstName).convert_(x => x.toUpperCase(), x => x.toLowerCase())}/>
 			</div>
 			<div className="form-group">
 				<label>Last Name</label>
-				<input type="text" className="form-control" value={userValue.lastName} onChange={e => user.mutate(u => u.lastName = e.target['value'])}/>
+				<InputThing text={user.member_(x => x.lastName)}/>
 			</div>
 			<div className="form-group">
 				<label>Email</label>
-				<input type="text" className="form-control" value={userValue.email} onChange={e=> user.mutate(u => u.email = e.target['value'])}/>
+				<InputThing text={user.member_(x => x.email)}/>
 			</div>
 		</div>
 	}
@@ -41,17 +50,11 @@ class UserEdit extends TsComponent<UserEditProps, {}> {
 
 interface AppState {
 	user : User;
+	visible : boolean;
 }
 
+
 export class App extends TsComponent<{}, AppState> {
-
-	static childContextTypes = {
-		test : React.PropTypes.string.isRequired
-	};
-
-	static getChildContext() {
-		return {test : ""}
-	}
 	constructor(props) {
 		super(props);
 		this.state = {
@@ -59,19 +62,22 @@ export class App extends TsComponent<{}, AppState> {
 				email : "",
 				lastName : "",
 				firstName : ""
-			}
+			},
+			visible : false
 		}
 	}
 	render() {
-		let user = Rexes.var_(this.state.user).listen_(u => this.withState(s => s.user = user));
+		let user = this.state_.member_(x => x.user);
+		let block = this.state.visible ? <div><UserEdit user={user}/></div> : null;
 		return <div className="container">
 			<h1>Edit User</h1>
-			<div><UserEdit user={user}/></div>
+			{block}
 			<div>
 				<pre>
-					{JSON.stringify(user, null, 2)}
+					{JSON.stringify(user.value, null, 2)}
 				</pre>
 			</div>
+			<div><button onClick={() => this.withState(s => s.visible = !s.visible)}>adsf</button></div>
 		</div>;
 	}
 }

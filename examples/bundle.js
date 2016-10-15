@@ -4239,7 +4239,7 @@
 	};
 	var React = __webpack_require__(1);
 	var ts_component_1 = __webpack_require__(35);
-	var index_1 = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../jspm_packages/npm/rexjs@0.2.1/dist/index\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+	var rexjs_1 = __webpack_require__(39);
 	__webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../jspm_packages/github/twbs/bootstrap@3.3.7/css/bootstrap.css!css\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 	__webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../jspm_packages/github/twbs/bootstrap@3.3.7/css/bootstrap-theme.css!css\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 	var UserEdit = (function (_super) {
@@ -4283,7 +4283,7 @@
 	    };
 	    App.prototype.render = function () {
 	        var _this = this;
-	        var user = index_1.Rexes.var_(this.state.user).listen_(function (u) { return _this.withState(function (s) { return s.user = user; }); });
+	        var user = rexjs_1.Rexes.var_(this.state.user).listen_(function (u) { return _this.withState(function (s) { return s.user = user; }); });
 	        return React.createElement("div", {className: "container"}, 
 	            React.createElement("h1", null, "Edit User"), 
 	            React.createElement("div", null, 
@@ -4314,15 +4314,18 @@
 	var React = __webpack_require__(1);
 	var _ = __webpack_require__(36);
 	var helpers_1 = __webpack_require__(38);
+	var rexjs_1 = __webpack_require__(39);
 	var componentSymbols = new helpers_1.SymbolFactory("react-ts2.ts-component");
 	var contextSymbol = componentSymbols.symbolFor("context");
 	var TsComponent = (function (_super) {
 	    __extends(TsComponent, _super);
 	    function TsComponent() {
+	        var _this = this;
 	        _super.apply(this, arguments);
 	        //automatically allow context passing. To meaningfully use context,
 	        //you still have to declare a context member with a type.
 	        this.contextTypes = {};
+	        this.state_ = rexjs_1.Rexes.computed_(function () { return _this.state; }, function (input) { return _this.setState(function (p) { return input; }); });
 	    }
 	    TsComponent.prototype.copyState = function () {
 	        return _.cloneDeep(this.state);
@@ -21371,6 +21374,1096 @@
 	    return SymbolFactory;
 	}());
 	exports.SymbolFactory = SymbolFactory;
+
+
+/***/ },
+/* 39 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var events_1 = __webpack_require__(40);
+	exports.RexEvent = events_1.RexEvent;
+	exports.Subscription = events_1.Subscription;
+	var rexes_1 = __webpack_require__(45);
+	exports.RexScalar = rexes_1.RexScalar;
+	exports.Rex = rexes_1.Rex;
+	exports.RexNames = rexes_1.RexNames;
+	var extension_1 = __webpack_require__(52);
+	exports.Rexes = extension_1.Rexes;
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 40 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var subscription_1 = __webpack_require__(41);
+	exports.Subscription = subscription_1.Subscription;
+	var rex_event_1 = __webpack_require__(42);
+	exports.RexEvent = rex_event_1.RexEvent;
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 41 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/**
+	 * Created by Greg on 03/10/2016.
+	 */
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _ = __webpack_require__(36);
+	/**
+	 * A special token that represents a subscription to a RexEvent and allows certain operations to be performed on the subscription.
+	 */
+	var Subscription = (function () {
+	    /**
+	     * Constructs a new subscription token.
+	     * @param members The actions this Subscription supports or just the Close action.
+	     */
+	    function Subscription(members) {
+	        if (_.isFunction(members)) {
+	            this._members = {
+	                close: members,
+	                freeze: function () { },
+	                unfreeze: function () { }
+	            };
+	        }
+	        else {
+	            this._members = members;
+	        }
+	    }
+	    /**
+	     * Combines this subscription token with others to create a single token that controls them all.
+	     * @param otherTokens The other tokens.
+	     * @returns {Subscription} A multi-subscription token.
+	     */
+	    Subscription.prototype.and = function () {
+	        var otherTokens = [];
+	        for (var _i = 0; _i < arguments.length; _i++) {
+	            otherTokens[_i - 0] = arguments[_i];
+	        }
+	        return Subscription.all([this].concat(otherTokens));
+	    };
+	    /**
+	     * Freezes this subscription, executes the action, and unfreezes it.
+	     * @param action
+	     */
+	    Subscription.prototype.freezeWhile = function (action) {
+	        if (this._members) {
+	            this.freeze();
+	            action();
+	            this.unfreeze();
+	        }
+	        else {
+	            action();
+	        }
+	    };
+	    Subscription.all = function (tokens) {
+	        var arr = tokens.map(function (x) { return x instanceof MultiSubscription ? x._disposalList : [x]; });
+	        var flat = _.flatten(arr);
+	        return new MultiSubscription(flat);
+	    };
+	    /**
+	     * Freezes this subscription until it is unfrozen or closed.
+	     */
+	    Subscription.prototype.freeze = function () {
+	        this._members.freeze.call(this);
+	    };
+	    /**
+	     * Unfreezes the subscription if it's frozen.
+	     */
+	    Subscription.prototype.unfreeze = function () {
+	        this._members.unfreeze.call(this);
+	    };
+	    /**
+	     * Performs the cleanup specified for the token. Multiple calls to this method do nothing.
+	     */
+	    Subscription.prototype.close = function () {
+	        if (this._members) {
+	            this._members.close.call(this);
+	            this._members = null;
+	        }
+	    };
+	    return Subscription;
+	}());
+	exports.Subscription = Subscription;
+	var MultiSubscription = (function (_super) {
+	    __extends(MultiSubscription, _super);
+	    function MultiSubscription(list) {
+	        var close = function () { return list.forEach(function (x) { return x.close(); }); };
+	        var freeze;
+	        var unfreeze;
+	        if (list.length === 0) {
+	            freeze = unfreeze = function () { };
+	        }
+	        else if (list.length === 1) {
+	            freeze = function () { return list.forEach(function (x) { return x.freeze(); }); };
+	            unfreeze = function () { return list.forEach(function (x) { return x.unfreeze(); }); };
+	        }
+	        _super.call(this, {
+	            freeze: freeze,
+	            unfreeze: unfreeze,
+	            close: close
+	        });
+	        this._disposalList = list;
+	    }
+	    MultiSubscription.prototype.close = function () {
+	        _super.prototype.close.call(this);
+	        this._disposalList = [];
+	    };
+	    return MultiSubscription;
+	}(Subscription));
+	exports.MultiSubscription = MultiSubscription;
+
+	//# sourceMappingURL=subscription.js.map
+
+
+/***/ },
+/* 42 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var _ = __webpack_require__(36);
+	var subscription_1 = __webpack_require__(41);
+	var collections_1 = __webpack_require__(43);
+	/**
+	 * An event primitive used in the rexjs library. Allows the ability to subscribe to notifications.
+	 *
+	 */
+	var freezeKey = "rexjs:RexEvent-frozen";
+	var RexEvent = (function () {
+	    /**
+	     * Constructs a new instance of the @RexEvent.
+	     * @constructor
+	     * @param _name A human-readable name for the event. Optional.
+	     */
+	    function RexEvent(_name) {
+	        if (_name === void 0) { _name = "Event"; }
+	        this._name = _name;
+	        this._weakInvocList = new collections_1.SemiWeakMap();
+	        this._strongInvocList = [];
+	    }
+	    Object.defineProperty(RexEvent.prototype, "name", {
+	        /**
+	         * Returns the human-readable name for the event.
+	         * @returns {string}
+	         */
+	        get: function () {
+	            return this._name;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    /**
+	     * Attaches a handler to this event or subscribes to it. When the event will fire it will also fire the handler.
+	     * If the handler is a function, it's called, and if it's an event, it's fired.
+	     * @param handler The handler, which can be another event or a function.
+	     * @param strong Whether the handler is registered as a weak or strong handler.
+	     * @returns {Subscription} A token that supports a close() method, upon which this subscription is cancelled.
+	     */
+	    RexEvent.prototype._on = function (handler, strong) {
+	        var _this = this;
+	        var handlerKey = {};
+	        var finalHandler;
+	        if (handler instanceof RexEvent) {
+	            finalHandler = handler.fire.bind(handler);
+	        }
+	        else if (_.isFunction(handler)) {
+	            finalHandler = handler;
+	        }
+	        else {
+	            throw new TypeError("Failed to resolve overload: " + handler + " is not a RexEvent or a function.");
+	        }
+	        if (!strong) {
+	            this._weakInvocList.set(handlerKey, finalHandler);
+	        }
+	        else {
+	            this._strongInvocList.push(finalHandler);
+	        }
+	        return new subscription_1.Subscription({
+	            close: function () {
+	                if (!strong) {
+	                    _this._weakInvocList.removde(handlerKey);
+	                }
+	                else {
+	                    _.pull(_this._strongInvocList, finalHandler);
+	                }
+	            },
+	            freeze: function () { return finalHandler[freezeKey] = true; },
+	            unfreeze: function () { return finalHandler[freezeKey] = undefined; }
+	        });
+	    };
+	    RexEvent.prototype.weakOn = function (handler) {
+	        return this._on(handler, false);
+	    };
+	    RexEvent.prototype.on = function (handler) {
+	        return this._on(handler, true);
+	    };
+	    /**
+	     * Fires the event. This method's visibility is not restricted, but it should be used carefully.
+	     * @param arg The argument with which the event is raised.
+	     */
+	    RexEvent.prototype.fire = function (arg) {
+	        this._strongInvocList.forEach(function (f) {
+	            if (!f[freezeKey]) {
+	                f(arg);
+	            }
+	        });
+	        this._weakInvocList.forEach(function (f) {
+	            if (!f[freezeKey]) {
+	                f(arg);
+	            }
+	        });
+	    };
+	    /**
+	     * Clears the event's subscription list. Use this method carefully.
+	     */
+	    RexEvent.prototype.clear = function () {
+	        this._strongInvocList = [];
+	        this._weakInvocList.clear();
+	    };
+	    RexEvent.prototype.toString = function () {
+	        return "[object RexEvent " + this.name + "]";
+	    };
+	    return RexEvent;
+	}());
+	exports.RexEvent = RexEvent;
+
+	//# sourceMappingURL=rex-event.js.map
+
+
+/***/ },
+/* 43 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	function __export(m) {
+	    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+	}
+	/**
+	 * Created by Greg on 14/10/2016.
+	 */
+	__export(__webpack_require__(44));
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 14/10/2016.
+	 */
+	var _ = __webpack_require__(36);
+	var SemiWeakMap = (function () {
+	    function SemiWeakMap() {
+	        this._keys = [];
+	        this._weakMap = new WeakMap();
+	    }
+	    SemiWeakMap.prototype.set = function (key, value) {
+	        if (!this._keys.includes(key)) {
+	            this._keys.push(key);
+	        }
+	        this._weakMap.set(key, value);
+	    };
+	    SemiWeakMap.prototype.clear = function () {
+	        this._keys = [];
+	        this._weakMap = new WeakMap();
+	    };
+	    SemiWeakMap.prototype.remove = function (key) {
+	        if (this._weakMap.delete(key)) {
+	            _.pull(this._keys, key);
+	        }
+	    };
+	    SemiWeakMap.prototype.get = function (key) {
+	        return this._weakMap.get(key);
+	    };
+	    SemiWeakMap.prototype.forEach = function (f) {
+	        var toRemove = [];
+	        for (var _i = 0, _a = this._keys.slice(0); _i < _a.length; _i++) {
+	            var key = _a[_i];
+	            var wValue = this._weakMap.get(key);
+	            if (wValue) {
+	                f(wValue);
+	            }
+	            else {
+	                toRemove.push(key);
+	            }
+	        }
+	        _.pull.apply(_, [this._keys].concat(toRemove));
+	    };
+	    return SemiWeakMap;
+	}());
+	exports.SemiWeakMap = SemiWeakMap;
+
+	//# sourceMappingURL=semi-weak-map.js.map
+
+
+/***/ },
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var scalar_1 = __webpack_require__(46);
+	exports.RexScalar = scalar_1.RexScalar;
+	var base_1 = __webpack_require__(47);
+	exports.Rex = base_1.Rex;
+	var names_1 = __webpack_require__(50);
+	exports.RexNames = names_1.RexNames;
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 46 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var base_1 = __webpack_require__(47);
+	var RexScalar = (function (_super) {
+	    __extends(RexScalar, _super);
+	    function RexScalar() {
+	        _super.apply(this, arguments);
+	    }
+	    RexScalar.prototype.notifyChange = function (prevValue) {
+	        var self = this;
+	        this.changed.fire({
+	            get value() {
+	                return self.value;
+	            },
+	            oldValue: prevValue
+	        });
+	    };
+	    RexScalar.prototype.toString = function () {
+	        return "[RexScalar " + this.info.type + " " + this.value + "]";
+	    };
+	    return RexScalar;
+	}(base_1.Rex));
+	exports.RexScalar = RexScalar;
+	var convert_1 = __webpack_require__(49);
+	exports.RexConvert = convert_1.RexConvert;
+	var var_1 = __webpack_require__(51);
+	exports.RexVar = var_1.RexVar;
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var _1 = __webpack_require__(39);
+	var errors_1 = __webpack_require__(48);
+	var Rex = (function () {
+	    function Rex() {
+	        this._isClosed = false;
+	        this.meta = {};
+	        this.depends = {};
+	        this.closing = new _1.RexEvent("onClosing");
+	        this.changed = new _1.RexEvent("onChanged");
+	    }
+	    Object.defineProperty(Rex.prototype, "isClosed", {
+	        get: function () {
+	            return this._isClosed;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    Rex.prototype.close = function () {
+	        this.changed.clear();
+	        this.closing.fire(undefined);
+	        this.closing.clear();
+	        this._isClosed = true;
+	    };
+	    Rex.prototype.makeSureNotClosed = function () {
+	        if (this._isClosed) {
+	            throw errors_1.Errors.closed(this.meta.name || "");
+	        }
+	    };
+	    return Rex;
+	}());
+	exports.Rex = Rex;
+
+	//# sourceMappingURL=base.js.map
+
+
+/***/ },
+/* 48 */
+/***/ function(module, exports) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var ClosedError = (function (_super) {
+	    __extends(ClosedError, _super);
+	    function ClosedError(name) {
+	        if (name === void 0) { name = ""; }
+	        _super.call(this, "The operation failed because the object '" + name + "' was closed.");
+	        this.name = "ClosedError";
+	    }
+	    return ClosedError;
+	}(Error));
+	exports.ClosedError = ClosedError;
+	var AccessError = (function (_super) {
+	    __extends(AccessError, _super);
+	    function AccessError(name, access) {
+	        if (name === void 0) { name = ""; }
+	        if (access === void 0) { access = "unknown"; }
+	        _super.call(this, "The operation failed because the object '" + name + "' does not support access of type '" + access + "'.");
+	        this.name = "AccessError";
+	    }
+	    return AccessError;
+	}(Error));
+	exports.AccessError = AccessError;
+	var Errors;
+	(function (Errors) {
+	    function closed(name) {
+	        return new ClosedError(name);
+	    }
+	    Errors.closed = closed;
+	    function cannotWrite(name) {
+	        return new AccessError(name, "write");
+	    }
+	    Errors.cannotWrite = cannotWrite;
+	    function cannotRead(name) {
+	        return new AccessError(name, "read");
+	    }
+	    Errors.cannotRead = cannotRead;
+	})(Errors = exports.Errors || (exports.Errors = {}));
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _1 = __webpack_require__(46);
+	var names_1 = __webpack_require__(50);
+	var errors_1 = __webpack_require__(48);
+	//instead of using undefined to signify a dirty cached value, we use a special token,
+	//because 'undefined' is a valid value.
+	var missing = {};
+	var RexConvert = (function (_super) {
+	    __extends(RexConvert, _super);
+	    function RexConvert(parent, conversion) {
+	        var _this = this;
+	        _super.call(this);
+	        this.parent = parent;
+	        this.conversion = conversion;
+	        this._last = missing;
+	        this.info = {
+	            type: names_1.RexNames.Convert,
+	            lazy: true,
+	            functional: true
+	        };
+	        this.depends.source = parent;
+	        this._parentSub = parent.changed.weakOn(function () {
+	            var lastVal = _this._last;
+	            _this._last = missing;
+	            _this.notifyChange(lastVal);
+	        });
+	        var parentClose = parent.closing.weakOn(function () { return _this.close(); });
+	        this._otherSubs = parentClose;
+	    }
+	    Object.defineProperty(RexConvert.prototype, "value", {
+	        get: function () {
+	            this.makeSureNotClosed();
+	            if (this._last === missing) {
+	                if (!this.conversion.from) {
+	                    throw errors_1.Errors.cannotRead(this.meta.name);
+	                }
+	                this._last = this.conversion.to(this.parent.value);
+	            }
+	            return this._last;
+	        },
+	        set: function (val) {
+	            var _this = this;
+	            this.makeSureNotClosed();
+	            if (!this.conversion.to) {
+	                throw errors_1.Errors.cannotWrite(this.meta.name);
+	            }
+	            var prevVal = this._last;
+	            //use Object.is in case of NaN
+	            if (Object.is(prevVal, val)) {
+	                return;
+	            }
+	            this._last = val;
+	            var newVal = this.conversion.from(val);
+	            this._parentSub.freezeWhile(function () { return _this.parent.value = newVal; });
+	            this.notifyChange(prevVal);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    RexConvert.prototype.close = function () {
+	        if (this.isClosed)
+	            return;
+	        this._otherSubs.close();
+	        this._parentSub.close();
+	        _super.prototype.close.call(this);
+	    };
+	    return RexConvert;
+	}(_1.RexScalar));
+	exports.RexConvert = RexConvert;
+
+	//# sourceMappingURL=convert.js.map
+
+
+/***/ },
+/* 50 */
+/***/ function(module, exports) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var RexNames;
+	(function (RexNames) {
+	    RexNames.Var = "Var";
+	    RexNames.Convert = "Convert";
+	    RexNames.Member = "Member";
+	    RexNames.Rectify = "Rectify";
+	    RexNames.Silence = "Silence";
+	    RexNames.Notify = "Notify";
+	    RexNames.Link = "Link";
+	    RexNames.Listen = "Listen";
+	    RexNames.Computed = "Computed";
+	})(RexNames = exports.RexNames || (exports.RexNames = {}));
+
+	//# sourceMappingURL=names.js.map
+
+
+/***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var _1 = __webpack_require__(46);
+	var names_1 = __webpack_require__(50);
+	var errors_1 = __webpack_require__(48);
+	var RexVar = (function (_super) {
+	    __extends(RexVar, _super);
+	    function RexVar(initial, canRead, canWrite) {
+	        if (canRead === void 0) { canRead = true; }
+	        if (canWrite === void 0) { canWrite = true; }
+	        _super.call(this);
+	        this.canRead = canRead;
+	        this.canWrite = canWrite;
+	        this.info = {
+	            lazy: false,
+	            type: names_1.RexNames.Var,
+	            functional: true
+	        };
+	        this.value = initial;
+	    }
+	    Object.defineProperty(RexVar.prototype, "value", {
+	        get: function () {
+	            this.makeSureNotClosed();
+	            if (!this.canRead) {
+	                throw errors_1.Errors.cannotRead(this.meta.name);
+	            }
+	            return this._value;
+	        },
+	        set: function (val) {
+	            this.makeSureNotClosed();
+	            if (!this.canWrite) {
+	                throw errors_1.Errors.cannotWrite(this.meta.name);
+	            }
+	            var oldVal = this._value;
+	            if (Object.is(this._value, val)) {
+	                return;
+	            }
+	            this._value = val;
+	            this.notifyChange(oldVal);
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return RexVar;
+	}(_1.RexScalar));
+	exports.RexVar = RexVar;
+
+	//# sourceMappingURL=var.js.map
+
+
+/***/ },
+/* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 02/10/2016.
+	 */
+	__webpack_require__(53);
+	var rex_1 = __webpack_require__(59);
+	exports.Rexes = rex_1.Rexes;
+
+	//# sourceMappingURL=index.js.map
+
+
+/***/ },
+/* 53 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	/**
+	 * Created by Greg on 01/10/2016.
+	 */
+	var _ = __webpack_require__(36);
+	var scalar_1 = __webpack_require__(46);
+	var convert_1 = __webpack_require__(49);
+	var rex_event_1 = __webpack_require__(42);
+	var notify_1 = __webpack_require__(54);
+	var silence_1 = __webpack_require__(55);
+	var member_1 = __webpack_require__(56);
+	var rectify_1 = __webpack_require__(57);
+	var link_1 = __webpack_require__(58);
+	var RexScalarExtensions = {
+	    convert_: function (arg1, arg2) {
+	        if (_.isFunction(arg1) || _.isFunction(arg2)) {
+	            return new convert_1.RexConvert(this, { to: arg1, from: arg2 });
+	        }
+	        else if (!arg1 && !arg2) {
+	            throw new TypeError("failed to match any overload for 'convert'.");
+	        }
+	        else {
+	            return new convert_1.RexConvert(this, arg1);
+	        }
+	    },
+	    link_: function () {
+	        return new link_1.RexLink(this);
+	    },
+	    rectify_: function (arg1, arg2) {
+	        if (_.isFunction(arg1)) {
+	            return new rectify_1.RexRectify(this, {
+	                to: arg1,
+	                rectify: arg2
+	            });
+	        }
+	        else {
+	            return new rectify_1.RexRectify(this, arg1);
+	        }
+	    },
+	    member_: function (memberName) {
+	        if (!memberName) {
+	            return this.link_();
+	        }
+	        return new member_1.RexMember(this, memberName);
+	    },
+	    notify_: function (eventOrEventGetter) {
+	        if (!eventOrEventGetter) {
+	            return this.link_();
+	        }
+	        else if (eventOrEventGetter instanceof rex_event_1.RexEvent) {
+	            return new notify_1.RexNotify(this, function (x) { return eventOrEventGetter; });
+	        }
+	        else if (_.isFunction(eventOrEventGetter)) {
+	            return new notify_1.RexNotify(this, eventOrEventGetter);
+	        }
+	        else {
+	            throw new TypeError("Failed to resolve overload of notify_: " + eventOrEventGetter + " is not a function or an event.");
+	        }
+	    },
+	    silence_: function (silencer) {
+	        return new silence_1.RexSilence(this, silencer);
+	    },
+	    listen_: function () {
+	        var callbacks = [];
+	        for (var _i = 0; _i < arguments.length; _i++) {
+	            callbacks[_i - 0] = arguments[_i];
+	        }
+	        var allCallbacks = function (change) {
+	            callbacks.forEach(function (f) { return f(change); });
+	        };
+	        this.changed.weakOn(allCallbacks);
+	        return this;
+	    },
+	    mutate: function (mutation) {
+	        var copy = _.cloneDeep(this.value);
+	        mutation(copy);
+	        this.value = copy;
+	    },
+	    reduce: function (reducer) {
+	        this.value = reducer(this.value);
+	    }
+	};
+	Object.assign(scalar_1.RexScalar.prototype, RexScalarExtensions);
+
+	//# sourceMappingURL=scalar.js.map
+
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var index_1 = __webpack_require__(46);
+	var names_1 = __webpack_require__(50);
+	/**
+	 * Created by Greg on 03/10/2016.
+	 */
+	var RexNotify = (function (_super) {
+	    __extends(RexNotify, _super);
+	    function RexNotify(parent, notifier) {
+	        var _this = this;
+	        _super.call(this);
+	        this.parent = parent;
+	        this.info = {
+	            lazy: true,
+	            functional: false,
+	            type: names_1.RexNames.Convert
+	        };
+	        this.depends.source = parent;
+	        this._parentToken = parent.changed.weakOn(this.changed).and();
+	        var onChange = function (change) {
+	            var newNotifier = notifier(change);
+	            if (_this._notifierToken) {
+	                _this._notifierToken.close();
+	            }
+	            _this._notifierToken = newNotifier.weakOn(function () { return _this.notifyChange(undefined); });
+	        };
+	        this._selfToken = this.changed.weakOn(onChange);
+	        this.notifyChange(undefined);
+	    }
+	    Object.defineProperty(RexNotify.prototype, "value", {
+	        get: function () {
+	            this.makeSureNotClosed();
+	            return this.parent.value;
+	        },
+	        set: function (newValue) {
+	            this.makeSureNotClosed();
+	            this.parent.value = newValue;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    RexNotify.prototype.close = function () {
+	        if (this.isClosed)
+	            return;
+	        [this._notifierToken, this._selfToken, this._parentToken].forEach(function (x) { return x.close(); });
+	        this._parentToken = this._selfToken = this._notifierToken = null;
+	        _super.prototype.close.call(this);
+	    };
+	    return RexNotify;
+	}(index_1.RexScalar));
+	exports.RexNotify = RexNotify;
+
+	//# sourceMappingURL=notify.js.map
+
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var index_1 = __webpack_require__(46);
+	var _1 = __webpack_require__(45);
+	/**
+	 * Created by Greg on 03/10/2016.
+	 */
+	var RexSilence = (function (_super) {
+	    __extends(RexSilence, _super);
+	    function RexSilence(parent, criterion) {
+	        var _this = this;
+	        _super.call(this);
+	        this.parent = parent;
+	        this.info = {
+	            type: _1.RexNames.Silence,
+	            lazy: true,
+	            functional: false
+	        };
+	        this.depends.source = parent;
+	        if (criterion) {
+	            this._token = parent.changed.weakOn(function (x) { return !criterion(x) ? _this.changed.fire(x) : void 0; });
+	        }
+	    }
+	    Object.defineProperty(RexSilence.prototype, "value", {
+	        get: function () {
+	            this.makeSureNotClosed();
+	            return this.parent.value;
+	        },
+	        set: function (newValue) {
+	            this.makeSureNotClosed();
+	            this.parent.value = newValue;
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return RexSilence;
+	}(index_1.RexScalar));
+	exports.RexSilence = RexSilence;
+
+	//# sourceMappingURL=silence.js.map
+
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var rectify_1 = __webpack_require__(57);
+	var names_1 = __webpack_require__(50);
+	/**
+	 * Created by Greg on 03/10/2016.
+	 */
+	var RexMember = (function (_super) {
+	    __extends(RexMember, _super);
+	    function RexMember(parent, memberName) {
+	        _super.call(this, parent, {
+	            to: function (from) { return from[memberName]; },
+	            rectify: function (current, input) { return current[memberName] = input; }
+	        });
+	        this.memberName = memberName;
+	        this.info.type = names_1.RexNames.Member;
+	    }
+	    return RexMember;
+	}(rectify_1.RexRectify));
+	exports.RexMember = RexMember;
+
+	//# sourceMappingURL=member.js.map
+
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var convert_1 = __webpack_require__(49);
+	var _ = __webpack_require__(36);
+	var names_1 = __webpack_require__(50);
+	var RexRectify = (function (_super) {
+	    __extends(RexRectify, _super);
+	    function RexRectify(parent, rectifier) {
+	        var rectifyAsFrom = function (to) {
+	            var currentClone = _.cloneDeep(parent.value);
+	            rectifier.rectify(currentClone, to);
+	            return currentClone;
+	        };
+	        _super.call(this, parent, {
+	            to: rectifier.to,
+	            from: rectifyAsFrom
+	        });
+	        this.info.type = names_1.RexNames.Rectify;
+	    }
+	    return RexRectify;
+	}(convert_1.RexConvert));
+	exports.RexRectify = RexRectify;
+
+	//# sourceMappingURL=rectify.js.map
+
+
+/***/ },
+/* 58 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var convert_1 = __webpack_require__(49);
+	var names_1 = __webpack_require__(50);
+	/**
+	 * Created by Greg on 03/10/2016.
+	 */
+	var RexLink = (function (_super) {
+	    __extends(RexLink, _super);
+	    function RexLink(parent) {
+	        _super.call(this, parent, {
+	            from: function (x) { return x; },
+	            to: function (x) { return x; }
+	        });
+	        this.info = {
+	            type: names_1.RexNames.Link,
+	            lazy: true,
+	            functional: false
+	        };
+	    }
+	    return RexLink;
+	}(convert_1.RexConvert));
+	exports.RexLink = RexLink;
+
+	//# sourceMappingURL=link.js.map
+
+
+/***/ },
+/* 59 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var var_1 = __webpack_require__(51);
+	var base_1 = __webpack_require__(47);
+	var index_1 = __webpack_require__(46);
+	var computed_1 = __webpack_require__(60);
+	/**
+	 * Created by Greg on 02/10/2016.
+	 */
+	/**
+	 * Module for constructing various rexjs objects.
+	 */
+	var Rexes;
+	(function (Rexes) {
+	    /**
+	     * Constructs a Var Rex object, which is backed by a variable, and supports both reading and writing.
+	     * @param initial The initial value of the Var.
+	     * @returns {RexVar<T>} The Var object.
+	     */
+	    function var_(initial) {
+	        return new var_1.RexVar(initial);
+	    }
+	    Rexes.var_ = var_;
+	    /**
+	     * Constructs a Const Rex object, which is like a Var, but writing to it throws an error.
+	     * @param value The value of the Const.
+	     * @returns {RexVar<T>}
+	     */
+	    function const_(value) {
+	        return new var_1.RexVar(value, true, false);
+	    }
+	    Rexes.const_ = const_;
+	    function computed_(onRead, onWrite) {
+	        return new computed_1.RexComputed(onRead, onWrite);
+	    }
+	    Rexes.computed_ = computed_;
+	})(Rexes = exports.Rexes || (exports.Rexes = {}));
+	/**
+	 * Module for reflecting over rexjs objects.
+	 */
+	var Rexflect;
+	(function (Rexflect) {
+	    /**
+	     * Returns true if the argument is a Rex object, i.e. an instanceof {Rex}.
+	     * @param x The object to test.
+	     * @returns {boolean}
+	     */
+	    function isRex(x) {
+	        return x instanceof base_1.Rex;
+	    }
+	    Rexflect.isRex = isRex;
+	    /**
+	     * Returns true if the argument is a scalar rex object, i.e. an instanceof {RexScalar}.
+	     * @param x The object to test.
+	     */
+	    function isScalar(x) {
+	        return x instanceof index_1.RexScalar;
+	    }
+	    Rexflect.isScalar = isScalar;
+	})(Rexflect = exports.Rexflect || (exports.Rexflect = {}));
+
+	//# sourceMappingURL=rex.js.map
+
+
+/***/ },
+/* 60 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || function (d, b) {
+	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+	    function __() { this.constructor = d; }
+	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	};
+	var _1 = __webpack_require__(45);
+	/**
+	 * Created by Greg on 12/10/2016.
+	 */
+	var RexComputed = (function (_super) {
+	    __extends(RexComputed, _super);
+	    function RexComputed(onRead, onWrite) {
+	        _super.call(this);
+	        this.onRead = onRead;
+	        this.onWrite = onWrite;
+	        this.info = {
+	            functional: true,
+	            type: _1.RexNames.Computed,
+	            lazy: true
+	        };
+	    }
+	    Object.defineProperty(RexComputed.prototype, "value", {
+	        get: function () {
+	            return this.onRead();
+	        },
+	        set: function (x) {
+	            if (this.onWrite) {
+	                this.onWrite(x);
+	            }
+	        },
+	        enumerable: true,
+	        configurable: true
+	    });
+	    return RexComputed;
+	}(_1.RexScalar));
+	exports.RexComputed = RexComputed;
+
+	//# sourceMappingURL=computed.js.map
 
 
 /***/ }
