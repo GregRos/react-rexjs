@@ -5,6 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var React = require('react');
+var _ = require('lodash');
 var rexjs_1 = require('rexjs');
 var TsComponent = (function (_super) {
     __extends(TsComponent, _super);
@@ -13,8 +14,12 @@ var TsComponent = (function (_super) {
         _super.apply(this, arguments);
         this.state_ = rexjs_1.Rexes.computed_(function () { return _this.state; }, function (input) { return _this.setState(function (p) { return input; }); }).silence_();
     }
-    TsComponent.prototype.withState = function (mutation) {
-        this.state_.mutate(mutation);
+    TsComponent.prototype.withState = function (mutation, callback) {
+        this.setState(function (state, props) {
+            var clone = _.cloneDeep(state);
+            mutation(clone, props);
+            return clone;
+        }, callback);
     };
     return TsComponent;
 }(React.Component));
