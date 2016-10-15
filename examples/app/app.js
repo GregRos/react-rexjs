@@ -18,7 +18,7 @@ var InputThing = (function (_super) {
         return React.createElement("input", {type: "text", className: "form-control", value: text.value, onChange: function (e) { return text.value = e.target['value']; }});
     };
     return InputThing;
-}(src_1.TsComponent));
+}(src_1.RexComponent));
 var UserEdit = (function (_super) {
     __extends(UserEdit, _super);
     function UserEdit() {
@@ -39,7 +39,7 @@ var UserEdit = (function (_super) {
                 React.createElement(InputThing, {text: user.member_(function (x) { return x.email; })})));
     };
     return UserEdit;
-}(src_1.TsComponent));
+}(src_1.RexComponent));
 var App = (function (_super) {
     __extends(App, _super);
     function App(props) {
@@ -70,6 +70,6 @@ var App = (function (_super) {
             ));
     };
     return App;
-}(src_1.TsComponent));
+}(src_1.RexComponent));
 exports.App = App;
 //# sourceMappingURL=app.js.map

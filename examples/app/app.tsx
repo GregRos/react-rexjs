@@ -1,5 +1,5 @@
 import React = require('react');
-import {TsComponent} from "../../src";
+import {RexComponent} from "../../src";
 import {RexScalar, Rexes} from "rexjs";
 interface User {
 	firstName : string;
@@ -16,7 +16,7 @@ interface InputThingProps {
 	text : RexScalar<string>;
 }
 
-class InputThing extends TsComponent<InputThingProps, {}> {
+class InputThing extends RexComponent<InputThingProps, {}> {
 	render() {
 		let {text} = this.props;
 		return <input
@@ -27,7 +27,7 @@ class InputThing extends TsComponent<InputThingProps, {}> {
 	}
 }
 
-class UserEdit extends TsComponent<UserEditProps, {}> {
+class UserEdit extends RexComponent<UserEditProps, {}> {
 	render() {
 		let user = this.props.user;
 		let userValue = user.value;
@@ -54,7 +54,7 @@ interface AppState {
 }
 
 
-export class App extends TsComponent<{}, AppState> {
+export class App extends RexComponent<{}, AppState> {
 	constructor(props) {
 		super(props);
 		this.state = {

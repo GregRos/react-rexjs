@@ -1,4 +1,4 @@
 /**
  * Created by Greg on 25/09/2016.
  */
-export * from './ts-component';
+export * from './rex-component';

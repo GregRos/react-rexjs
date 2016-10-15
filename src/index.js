@@ -5,5 +5,5 @@ function __export(m) {
 /**
  * Created by Greg on 25/09/2016.
  */
-__export(require('./ts-component'));
+__export(require('./rex-component'));
 //# sourceMappingURL=index.js.map

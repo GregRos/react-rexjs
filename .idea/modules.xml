@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/react-ts.iml" filepath="$PROJECT_DIR$/.idea/react-ts.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/react-rexjs.iml" filepath="$PROJECT_DIR$/.idea/react-rexjs.iml" />
     </modules>
   </component>
 </project>

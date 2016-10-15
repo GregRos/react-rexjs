@@ -49,7 +49,7 @@ fabric.properties
 logs
 *.log
 npm-debug.log*
-
+examples/out/
 # Runtime data
 pids
 *.pid
